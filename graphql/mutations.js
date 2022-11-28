@@ -1,9 +1,10 @@
 const { GraphQLString } = require('graphql')
 const { User } = require('../models')
+const { generateJWT } = require('../util/auth')
 
 const register = {
   type: GraphQLString,
-  description: 'Registers a new User',
+  description: 'Registers a new User and returns a JWT token',
   args: {
     username: {
       type: GraphQLString
@@ -21,10 +22,42 @@ const register = {
   async resolve (_, args) {
     const { username, email, password, displayName } = args
 
-    const newUser = await User.create({ username, email, password, displayName })
-    console.log(newUser)
-    return 'New user created!'
+    const user = new User({ username, email, password, displayName })
+    await user.save()
+
+    const jwt = generateJWT({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      displayName: user.displayName
+    })
+
+    return jwt
   }
 }
 
-module.exports = { register }
+const login = {
+  type: GraphQLString,
+  description: 'Logs a user and returns a session token',
+  args: {
+    email: {
+      type: GraphQLString
+    },
+    password: {
+      type: GraphQLString
+    }
+  },
+  async resolve (_, args) {
+    const { email, password } = args
+    const user = await User.findOne({ email }).select('+password')
+
+    if (!user || password !== user.password) {
+      throw new Error('Invalid username or password')
+    }
+
+    const JWT = generateJWT(user)
+    return JWT
+  }
+}
+
+module.exports = { register, login }
