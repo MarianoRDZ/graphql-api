@@ -55,7 +55,12 @@ const login = {
       throw new Error('Invalid username or password')
     }
 
-    const JWT = generateJWT(user)
+    const JWT = generateJWT({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      displayName: user.displayName
+    })
     return JWT
   }
 }
