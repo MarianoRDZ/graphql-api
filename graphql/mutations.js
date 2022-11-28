@@ -25,14 +25,14 @@ const register = {
     const user = new User({ username, email, password, displayName })
     await user.save()
 
-    const jwt = generateJWT({
+    const JWT = generateJWT({
       _id: user._id,
       username: user.username,
       email: user.email,
       displayName: user.displayName
     })
 
-    return jwt
+    return JWT
   }
 }
 
